@@ -1,0 +1,310 @@
+{
+  "name": "Google Sheets Dashboard",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "REPLACE_WEBHOOK_PATH",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -416,
+        0
+      ],
+      "id": "07b60b9f-f62b-427a-8c2f-4e89c6ac2e12",
+      "name": "Webhook",
+      "webhookId": "REPLACE_WEBHOOK_ID"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.range.columnStart }}",
+                    "rightValue": 4,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    },
+                    "id": "a667f7e8-df81-403c-abde-8941afef0af6"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "564b3235-f4e6-47b7-89dd-444d3f52b41a",
+                    "leftValue": "={{ $json.body.range.columnStart }}",
+                    "rightValue": 5,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -192,
+        0
+      ],
+      "id": "8c19778d-458b-489b-b1a3-27eb501c8107",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "263d4a29-5a46-4906-af26-dc8269901899",
+              "leftValue": "={{ $json.body.value }}",
+              "rightValue": "TRUE",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        32,
+        -112
+      ],
+      "id": "a4a5b6f3-05d6-4107-8c07-b9c9d887143d",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "Calendar Booking Link",
+        "message": "=Hey {{ $json.body.rowValues[0]['0'].split(' ',[1]) }},\n\nThis is my Gmeet link",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        256,
+        -112
+      ],
+      "id": "50312c8e-14dd-4c1d-a533-4d4ecfb6d2a7",
+      "name": "Create a draft",
+      "webhookId": "REPLACE_WEBHOOK_ID",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "0OnXcLg8hCsAbOBH",
+          "name": "AK-Gmail"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.value }}",
+                    "rightValue": "Onboarding",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "4b74a4fe-fc02-47d7-ab7a-ff51006e7cea"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "d116d662-cc29-495b-8492-33de43c90afa",
+                    "leftValue": "={{ $json.body.value }}",
+                    "rightValue": "New Lead",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "cbc61bf1-0668-4c0f-a5e0-90d900b98155",
+                    "leftValue": "={{ $json.body.value }}",
+                    "rightValue": "Sales Call",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        32,
+        80
+      ],
+      "id": "ed23a269-ad37-47aa-be66-91abb7aef739",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "Calendar Booking Link",
+        "message": "=Hey {{ $json.body.rowValues[0]['0'].split(' ',[1]) }},\n\nI saw you were didnt complete the form, please do it ASAP.\n\nThanks.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        304,
+        64
+      ],
+      "id": "0411f313-f3f8-428e-9210-ee6353907242",
+      "name": "Create a draft1",
+      "webhookId": "REPLACE_WEBHOOK_ID",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "0OnXcLg8hCsAbOBH",
+          "name": "AK-Gmail"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Create a draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Create a draft1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "2fd27a75-a6b3-4fe4-8145-25e27405fd77",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e3062000b9c19bf8a4e2c7741c0d61d36abd27f0e30312b580801e91dd6ae451"
+  },
+  "id": "RLNDwWF8-KjUaOQcl7RUI",
+  "tags": []
+}
