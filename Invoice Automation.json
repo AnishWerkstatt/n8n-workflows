@@ -163,7 +163,7 @@
       "position": [
         0,
         -304
-      ],
+      ],f
       "id": "06d3ec18-5d32-4c21-b2d7-de57a3e72b8e",
       "name": "Get a file",
       "webhookId": "22c45bd1-7350-4e3b-b44d-258728464654",
@@ -187,7 +187,7 @@
             },
             {
               "name": "Authorization",
-              "value": "Bearer llx-xuQ3YwpNY4bptMMIFlnrKxbzhkPX4KwClFmOMIYe92IJ2nqY"
+              "value": "Bearer {{token}}"
             }
           ]
         },
