@@ -52,7 +52,7 @@
             },
             {
               "name": "Authorization",
-              "value": "Bearer apify_api_oHim32Zwv7I71HaEnxbxFM71faOarx27STZD"
+              "value": "Bearer REPLACE_WITH_APIFY_API_TOKEN"
             }
           ]
         },
