@@ -1,0 +1,217 @@
+{
+  "name": "Get Chart",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -144,
+        -80
+      ],
+      "id": "68017167-c392-4974-ac27-78d04fe2f8a4",
+      "name": "Workflow Input Trigger"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.chart-img.com/v2/tradingview/advanced-chart/storage",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "REPLACE_CHART_IMG_API_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"theme\": \"dark\",\n  \"interval\": \"1W\",\n  \"symbol\": \"{{ $json.query }}\", \n  \"override\": {\n    \"showStudyLastValue\": false\n  },\n  \"studies\": [\n    {\n      \"name\": \"Volume\",\n      \"forceOverlay\": true\n    },\n    {\n      \"name\": \"MACD\",\n      \"override\": {\n        \"Signal.linewidth\": 2,\n        \"Signal.color\": \"rgb(255,65,129)\"\n      }\n    }\n  ]\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        80,
+        -80
+      ],
+      "id": "d6c998fe-e2aa-4b36-9ac6-4273e2737dbf",
+      "name": "Get Chart URL"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        288,
+        -80
+      ],
+      "id": "63ed4a78-eb46-424b-9627-884b2e9e290d",
+      "name": "Download Chart"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "text": "=# Role\n\nYou are an expert financial analyst specializing in technical analysis of stock charts. Your role is to analyze financial charts provided to you and offer comprehensive insights into the technical aspects, including candlestick patterns, MACD indicators, volume trends, and overall market sentiment. You must provide a detailed breakdown of the chart, highlighting key areas of interest and actionable insights.\n\nWhen analyzing a stock chart, always include the following:\n\n1. **Candlestick Analysis**:\n   - Identify and explain any significant candlestick patterns (e.g., bullish engulfing, doji, hammer).\n   - Comment on the overall trend (bullish, bearish, or sideways).\n   - Highlight any breakout or pullback zones.\n\n2. **MACD Analysis**:\n   - Describe the current state of the MACD line and Signal line (e.g., bullish crossover, bearish crossover).\n   - Discuss the MACD histogram and its implications for momentum.\n   - Identify any divergences between the MACD and the price action.\n\n3. **Volume Analysis**:\n   - Highlight any significant changes in trading volume.\n   - Explain how volume supports or contradicts price movements.\n   - Indicate any unusual spikes in volume that may suggest institutional activity.\n\n4. **Support and Resistance Levels**:\n   - Identify key support and resistance zones based on the chart.\n   - Discuss the importance of these levels for potential reversals or breakouts.\n\n5. **Actionable Insights**:\n   - Provide clear guidance on potential buy, sell, or hold strategies.\n   - Suggest what to watch for in the near term, including confirmation signals or potential risks.\n\n6. **Other Observations**:\n   - Note any patterns or indicators that are relevant to the analysis.\n   - Offer insights into market sentiment or other broader trends based on the chart.\n\nBe clear, concise, and data-driven in your analysis. Your goal is to provide actionable information that traders and investors can use to make informed decisions. Always explain your reasoning for any conclusions you draw from the chart.",
+        "inputType": "base64",
+        "simplify": false,
+        "options": {
+          "detail": "auto"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        496,
+        -80
+      ],
+      "id": "2b263d8c-8e6d-49e5-91d9-fbf3ac798e14",
+      "name": "Analyze image",
+      "credentials": {
+        "openAiApi": {
+          "id": "tW5347fKpC9Ez5k2",
+          "name": "AK-openai"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "7235751501",
+        "file": "={{ $('Download Chart').item.json.url }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        704,
+        -80
+      ],
+      "id": "dd048509-e0cf-4608-91e7-fba831522077",
+      "name": "Send a photo message",
+      "webhookId": "REPLACE_WEBHOOK_ID",
+      "credentials": {
+        "telegramApi": {
+          "id": "UU90bbdEujE9aqJi",
+          "name": "Finance Analyst Agent"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "00659d6c-629e-4ebf-9df1-9370ce4018a4",
+              "name": "Response",
+              "value": "={{ $('Analyze image').item.json.output[0].content[0].text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        912,
+        -80
+      ],
+      "id": "833f009f-7cd7-4232-8fe5-6d33da870071",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Workflow Input Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Chart URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Chart URL": {
+      "main": [
+        [
+          {
+            "node": "Download Chart",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Chart": {
+      "main": [
+        [
+          {
+            "node": "Analyze image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze image": {
+      "main": [
+        [
+          {
+            "node": "Send a photo message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a photo message": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "b47b2d63-f239-4c8f-aa46-d04666d47018",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e3062000b9c19bf8a4e2c7741c0d61d36abd27f0e30312b580801e91dd6ae451"
+  },
+  "id": "_R2VBRFlK6oZ0gN6P2087",
+  "tags": []
+}

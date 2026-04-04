@@ -1,0 +1,1012 @@
+{
+  "name": "Chris",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {
+          "chatIds": "7235751501"
+        }
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        -48
+      ],
+      "id": "738c14cd-44b2-4713-9c1d-699e2b90ea06",
+      "name": "Telegram Trigger",
+      "webhookId": "55460558-348d-4862-9f94-83b7f21271fa",
+      "credentials": {
+        "telegramApi": {
+          "id": "d3NlDPIu2dEL2FL8",
+          "name": "Chris"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "94302f34-fcf0-4ce6-b097-f05d2065dda4"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "74c9c9cd-0ad8-4c07-8f48-3c8c41d34ea6",
+                    "leftValue": "={{ $json.message.voice.mime_type }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Audio"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        -48
+      ],
+      "id": "47cb5f13-53d0-4ea4-a28e-2c3d2663c797",
+      "name": "Text/Audio"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.voice.file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        448,
+        48
+      ],
+      "id": "6c81c89b-a058-4528-8f83-626ae609df3b",
+      "name": "Get a file",
+      "webhookId": "d1ee58f9-d4ec-4681-83d4-c40c04a5ba87",
+      "credentials": {
+        "telegramApi": {
+          "id": "d3NlDPIu2dEL2FL8",
+          "name": "Chris"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "44801573-653d-4f57-8fb9-7884d6df270e",
+              "name": "Text",
+              "value": "={{ $json.message.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        896,
+        -144
+      ],
+      "id": "4dbdca1b-4495-4217-bf54-d527bd090996",
+      "name": "get file"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=={{ $json.Text || $json.Audio || $json.text }}",
+        "options": {
+          "systemMessage": "=# Overview\n**IMPORTANT: Always respond in English only, regardless of the language used by the user.**\n\nYou are **Chris**, the ultimate personal assistant. Your job is to route the user's request to the correct tool, always resolving contact details BEFORE passing tasks to other agents.\n\n## MANDATORY PRE-FLIGHT RULE\nBefore calling the Email Agent or Calendar Agent for ANY task that involves a person by name, you MUST:\n1. Call the **Contact Agent** first with the person's name to fetch their email address.\n2. Wait for the Contact Agent to return the email.\n3. Include the resolved email address explicitly in the prompt you send to the Email Agent or Calendar Agent.\n\nNEVER assume, guess, or skip the contact lookup. Even if you think you know the email, always verify via the Contact Agent.\n\n## Tools\n\n- **Contact Agent** — Fetches or saves contact information (name, email, phone). Always call this first when a person's name is mentioned.\n- **Email Agent** — Takes action in Gmail. Always pass the full resolved email address in your prompt to this agent, not just the person's name.\n- **Calendar Agent** — Takes action in Google Calendar. Always pass the full resolved email address of any attendee in your prompt to this agent.\n\n## Step-by-Step Process for Common Tasks\n\n### Sending or Drafting an Email\n1. Call Contact Agent: \"Get the email address for [Name]\"\n2. Receive the email (e.g., john@example.com)\n3. Call Email Agent: \"Draft an email to john@example.com (John) with subject [...] and body [...]\"\n\n### Creating a Calendar Event with an Attendee\n1. Call Contact Agent: \"Get the email address for [Name]\"\n2. Receive the email (e.g., john@example.com)\n3. Call Calendar Agent: \"Create an event on [date/time] with attendee john@example.com, titled [...]\"\n\n### Deleting or Updating a Calendar Event\n1. Call Calendar Agent: \"Get all events\" to find the correct event ID first.\n2. Then delete or update using the event ID.\n\n## Tools\n- Use the **Think** tool every time to verify you followed the correct steps before finishing.\n\n## Final Reminder\nCurrent date/time: {{ $now.format('DD MMM YYYY, HH:mm') }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1344,
+        -48
+      ],
+      "id": "67f7f802-889b-4e13-8bd9-9c9c50cdf972",
+      "name": "Master Agent"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-4.1-nano",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        176
+      ],
+      "id": "a766c11a-f9c0-418f-acca-09d53a586e9a",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "H7Wdx6wCpCltG4OS",
+          "name": "AK-OpenRouter"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1.1,
+      "position": [
+        1376,
+        176
+      ],
+      "id": "2e5ece06-d8de-4713-bc58-24f6b05bc13a",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1248,
+        176
+      ],
+      "id": "267ea4d5-5d85-4d83-8bb1-97099b72e4d6",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Call this tool to take action in the Contact database.",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=### Overview\nYou are a contact manager with access to a Google Sheets contact database. Your job is to look up or save contact information accurately.\n\n### Tools\n- **get Contact** — Search the contact database by name or email. Use this to retrieve a contact's email address or phone number.\n- **add or update Contact** — Add a new contact or update an existing one.\n\n### Rules\n- When asked for a contact's email, always use the **get Contact** tool — never guess or fabricate an email address.\n- Return the exact email address found in the database. If no contact is found, clearly say \"No contact found for [Name]\" so the Master Agent can inform the user.\n- When returning results, always include both the name AND the email in your response so the calling agent can use it directly.\n\n### Response Format\nAlways respond in this format when a contact is found:\n\"Found contact: [Name] — Email: [email@example.com]\"\n\nIf not found:\n\"No contact found for [Name] in the database.\""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        1504,
+        176
+      ],
+      "id": "68c2360d-553f-43fc-a239-1f2e7712442a",
+      "name": "Contact Agent"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Call this tool to take action in email",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=# Overview\nYou are an email assistant with access to Gmail. You will receive instructions that include a fully resolved email address — use that address exactly as provided.\n\n## Tools\n- **create Draft** — Create a Gmail draft or send an email. Use the exact email address passed to you.\n- **get Emails** — Retrieve emails. Always use this before creating a reply.\n- **Email Reply** — Reply to an existing email thread.\n\n## Rules\n- ALWAYS use the email address explicitly provided in your instructions. Do NOT look up or guess email addresses yourself.\n- If no email address is provided and only a name is given, respond: \"I need the email address for [Name] to proceed. Please provide it.\"\n- Write email body content in HTML format.\n- You cannot send emails directly — use the **create Draft** tool even when the user says \"send.\"\n\n## Final Reminder\nCurrent date/time: {{ $now.format('DD MMM YYYY, HH:mm') }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        1888,
+        176
+      ],
+      "id": "4d490b5a-83bf-4308-8d2d-6b663c234ae4",
+      "name": "Email Agent"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Call this tool to take action in the calendar.",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=### Overview\nYou are a calendar assistant with access to Google Calendar. You will receive instructions that include fully resolved email addresses for any attendees — use those addresses exactly as provided.\n\n### Tools\n1. **Get Events** — Retrieve calendar events. Always use this before updating or deleting.\n2. **Create Event** — Create an event with no attendees.\n3. **Create Event with Attendee** — Create an event with one or more attendees. Use the exact email address(es) passed to you.\n4. **Update Event** — Update an existing event. Fetch the event ID first using Get Events.\n5. **Delete Event** — Delete an event. Fetch the event ID first using Get Events.\n\n### Rules\n- ALWAYS use the attendee email address explicitly provided in your instructions. Do NOT look up, guess, or derive email addresses from names.\n- If no attendee email is provided but a name is mentioned, respond: \"I need the email address for [Name] to add them as an attendee. Please provide it.\"\n- Never assume the event ID — always call Get Events first when updating or deleting.\n\n### Final Reminder\nCurrent date/time: {{ $now.format('DD MMM YYYY, HH:mm') }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        2528,
+        176
+      ],
+      "id": "a7556c8b-7c32-4e65-a806-3c45079bbf55",
+      "name": "Calendar Agent"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-4o-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1392,
+        384
+      ],
+      "id": "d5e0783b-c01e-4be9-817f-6b8f1ef23be4",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "H7Wdx6wCpCltG4OS",
+          "name": "AK-OpenRouter"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1S1vqD45WbU1eFadenNoCkrsoxjg36ywvvBQXTy9KEh0",
+          "mode": "list",
+          "cachedResultName": "Client Contact",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1S1vqD45WbU1eFadenNoCkrsoxjg36ywvvBQXTy9KEh0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1S1vqD45WbU1eFadenNoCkrsoxjg36ywvvBQXTy9KEh0/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        1520,
+        384
+      ],
+      "id": "185ac314-6c80-4b2b-9a56-7c7198144ce8",
+      "name": "get Contact",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tFZraVTGea7lP34f",
+          "name": "AK-Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1S1vqD45WbU1eFadenNoCkrsoxjg36ywvvBQXTy9KEh0",
+          "mode": "list",
+          "cachedResultName": "Client Contact",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1S1vqD45WbU1eFadenNoCkrsoxjg36ywvvBQXTy9KEh0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1S1vqD45WbU1eFadenNoCkrsoxjg36ywvvBQXTy9KEh0/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Email": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Email__using_to_match_', `This is the email of the person`, 'string') }}",
+            "Name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Name', `This is the name of the person.`, 'string') }}",
+            "Phone Number": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Phone_Number', `This is the Phone number of the person`, 'string') }}"
+          },
+          "matchingColumns": [
+            "Email"
+          ],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Phone Number",
+              "displayName": "Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        1648,
+        384
+      ],
+      "id": "57131f3b-70b0-4a25-babc-ce80eb8882f1",
+      "name": "add or update Contact",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tFZraVTGea7lP34f",
+          "name": "AK-Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-4o-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1776,
+        384
+      ],
+      "id": "66933f4c-2fbe-47c1-9982-d37fa5f34ef6",
+      "name": "OpenRouter Chat Model2",
+      "credentials": {
+        "openRouterApi": {
+          "id": "H7Wdx6wCpCltG4OS",
+          "name": "AK-OpenRouter"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-4o-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        2288,
+        384
+      ],
+      "id": "708958f3-e309-43aa-a98d-42f78fbb81a9",
+      "name": "OpenRouter Chat Model3",
+      "credentials": {
+        "openRouterApi": {
+          "id": "H7Wdx6wCpCltG4OS",
+          "name": "AK-OpenRouter"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "emailType": "html",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        1904,
+        384
+      ],
+      "id": "a32d303c-1af8-40c4-8b01-09a67f379fc2",
+      "name": "create Draft",
+      "webhookId": "65ad557f-2215-4286-a077-066fa29da777",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "0OnXcLg8hCsAbOBH",
+          "name": "AK-Gmail"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', ``, 'boolean') }}",
+        "simple": false,
+        "filters": {
+          "sender": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Sender', `This can be a sender's name or the email address.`, 'string') }}"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        2032,
+        384
+      ],
+      "id": "2ec6febb-0e93-48cf-ba3e-ea9f2ff8ba79",
+      "name": "get Emails",
+      "webhookId": "8503ac6e-117b-491a-8770-0e7b119d0ad3",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "0OnXcLg8hCsAbOBH",
+          "name": "AK-Gmail"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message_ID', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        2160,
+        384
+      ],
+      "id": "fc0d8b69-9f60-443a-bbb5-1eb3660ccf30",
+      "name": "Email Reply",
+      "webhookId": "8503ac6e-117b-491a-8770-0e7b119d0ad3",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "0OnXcLg8hCsAbOBH",
+          "name": "AK-Gmail"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "anishkorade@gmail.com",
+          "mode": "list",
+          "cachedResultName": "anishkorade@gmail.com"
+        },
+        "limit": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Limit', ``, 'number') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        2416,
+        384
+      ],
+      "id": "54140807-272e-450b-b7a2-aff26eb7fd8e",
+      "name": "Get Events",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "Wh5MD3u1OQMdDXzB",
+          "name": "AK-Google Calendar"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "calendar": {
+          "__rl": true,
+          "value": "anishkorade@gmail.com",
+          "mode": "list",
+          "cachedResultName": "anishkorade@gmail.com"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "updateFields": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        2544,
+        384
+      ],
+      "id": "3ae8961c-124a-42c6-a240-47689848d2bf",
+      "name": "Update Event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "Wh5MD3u1OQMdDXzB",
+          "name": "AK-Google Calendar"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "calendar": {
+          "__rl": true,
+          "value": "anishkorade@gmail.com",
+          "mode": "list",
+          "cachedResultName": "anishkorade@gmail.com"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        2672,
+        384
+      ],
+      "id": "54211db7-ab96-4db0-acb0-c96eb1fc8ecf",
+      "name": "Delete Event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "Wh5MD3u1OQMdDXzB",
+          "name": "AK-Google Calendar"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "anishkorade@gmail.com",
+          "mode": "list",
+          "cachedResultName": "anishkorade@gmail.com"
+        },
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        2800,
+        384
+      ],
+      "id": "b205bc51-903a-47ae-b802-8c2b6fdfe967",
+      "name": "Create Event with Attendee",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "Wh5MD3u1OQMdDXzB",
+          "name": "AK-Google Calendar"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "anishkorade@gmail.com",
+          "mode": "list",
+          "cachedResultName": "anishkorade@gmail.com"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+        "additionalFields": {
+          "attendees": [
+            "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('attendees0_Attendees', `This is the email address of the attendees.`, 'string') }}"
+          ],
+          "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        2928,
+        384
+      ],
+      "id": "30a3519f-0ba7-4496-8fd0-ac4e206943d4",
+      "name": "Create event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "Wh5MD3u1OQMdDXzB",
+          "name": "AK-Google Calendar"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "7235751501",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3136,
+        -48
+      ],
+      "id": "371e1f6d-3d8c-4607-a743-b858d4b87248",
+      "name": "Send a text message",
+      "webhookId": "d4598fb4-00c2-4871-b9c0-9541987efe3b",
+      "credentials": {
+        "telegramApi": {
+          "id": "d3NlDPIu2dEL2FL8",
+          "name": "Chris"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "da1bb70e-127f-421b-a9ae-812af1a701e5",
+              "name": "Audio",
+              "value": "={{ $json.transcription }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        896,
+        48
+      ],
+      "id": "5f69c99b-7799-487b-986b-9624bd81cb7b",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-openrouter-transcribe.openRouterTranscribe",
+      "typeVersion": 1,
+      "position": [
+        672,
+        240
+      ],
+      "id": "34b203ec-2957-46aa-bb8d-006d60bbecd7",
+      "name": "OpenRouter Transcribe",
+      "credentials": {
+        "openRouterApi": {
+          "id": "H7Wdx6wCpCltG4OS",
+          "name": "AK-OpenRouter"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Text/Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text/Audio": {
+      "main": [
+        [
+          {
+            "node": "get file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "OpenRouter Transcribe",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get file": {
+      "main": [
+        [
+          {
+            "node": "Master Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Master Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "Master Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Master Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contact Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Master Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Master Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calendar Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Master Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Contact Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get Contact": {
+      "ai_tool": [
+        [
+          {
+            "node": "Contact Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "add or update Contact": {
+      "ai_tool": [
+        [
+          {
+            "node": "Contact Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Email Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Calendar Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create Draft": {
+      "ai_tool": [
+        [
+          {
+            "node": "Email Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get Emails": {
+      "ai_tool": [
+        [
+          {
+            "node": "Email Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Reply": {
+      "ai_tool": [
+        [
+          {
+            "node": "Email Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Events": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Event": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Event": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Event with Attendee": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create event": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Master Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Transcribe": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "be864127-bce4-4b97-81ed-a97201c4b139",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e3062000b9c19bf8a4e2c7741c0d61d36abd27f0e30312b580801e91dd6ae451"
+  },
+  "id": "5RycOZG9MEs5kerrNreqJ",
+  "tags": []
+}

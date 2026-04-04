@@ -1,0 +1,120 @@
+{
+  "name": "Get Me Outta This",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "REPLACE_WEBHOOK_PATH",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -224,
+        -48
+      ],
+      "id": "03fcf4e6-8c02-4fa5-a636-cea94f651d04",
+      "name": "Webhook",
+      "webhookId": "REPLACE_WEBHOOK_ID"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=User problem: {{ $json.body.problem }}",
+        "options": {
+          "systemMessage": "=### Overview\nYou are an excuse generator. Your job is to create a clever, creative,humanized and context appropriate excuses that someone could use to avoid or get out of situation.\n\n### Output\n- Only return the excuse.\n- Add a touch of matured humour to the excuse.\n\n### Rules\n- Understand the context of the user problem first.\n- the excuse should be highly humanize and realistic.\n- Create short and believable excuses. \n- The excuses should sound mature and NOT childish.\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -16,
+        -48
+      ],
+      "id": "57e8ca09-2596-4853-89c9-9778c4caf802",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-4o-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        128
+      ],
+      "id": "db1fa67a-d328-4d9a-9cef-cc5f6e840d4a",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "H7Wdx6wCpCltG4OS",
+          "name": "AK-OpenRouter"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        336,
+        -48
+      ],
+      "id": "5e8db82c-8a16-4663-afb9-3ceb23052ea2",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "6e75851a-9c76-45f6-b293-b7fa39be9af2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e3062000b9c19bf8a4e2c7741c0d61d36abd27f0e30312b580801e91dd6ae451"
+  },
+  "id": "5PYxx9unV4flj0aaT1WVB",
+  "tags": []
+}
