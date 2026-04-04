@@ -1,0 +1,567 @@
+{
+  "name": "Web scrapping",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        272
+      ],
+      "id": "ce87ba06-c975-4bd5-b751-adbc201102ae",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6a39ced1-d307-455a-a214-0a336a7257ae",
+              "name": "Leads",
+              "value": " [    {       \"row_number\":  2,       \"Full Name\":  \"Malay Thoria\",       \"Email\":  \"malaythoria@gmail.com\",       \"Service\":  \"SEO\",       \"Budget\":  1000    },    {       \"row_number\":  3,       \"Full Name\":  \"Harjot Raith\",       \"Email\":  \"harjots.raith@gmail.com\",       \"Service\":  \"Ads\",       \"Budget\":  800    },    {       \"row_number\":  4,       \"Full Name\":  \"Kanishk Kumar\",       \"Email\":  \"kanishkmonty7@gmail.com\",       \"Service\":  \"SEO\",       \"Budget\":  1200    } ]",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "69a3e98f-3bd2-4529-8b6e-70badcb1ae5c",
+      "name": "Edit Fields",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "Leads",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "d244f82a-3d56-4df6-b012-53bc04126584",
+      "name": "Split Out",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "398466e1-a2e9-4084-9f41-5e04d73bda49",
+              "leftValue": "={{ $json.Budget }}",
+              "rightValue": 1000,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "e51198b2-566a-4327-ba58-07952e778bd2",
+      "name": "Filter",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "11Sq7g7k9X-V_CnG3qwDvQ-RvgH4VyjVAaNOFVTo-YPg",
+          "mode": "list",
+          "cachedResultName": "Dummy",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11Sq7g7k9X-V_CnG3qwDvQ-RvgH4VyjVAaNOFVTo-YPg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1402012697,
+          "mode": "list",
+          "cachedResultName": "Sheet2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11Sq7g7k9X-V_CnG3qwDvQ-RvgH4VyjVAaNOFVTo-YPg/edit#gid=1402012697"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Full Name": "={{ $json['Full Name'] }}",
+            "Email": "={{ $json.Email }}",
+            "Service": "={{ $json.Service }}",
+            "Budget": "={{ $json.Budget }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Full Name",
+              "displayName": "Full Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Service",
+              "displayName": "Service",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Budget",
+              "displayName": "Budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        624,
+        0
+      ],
+      "id": "8cc43c3a-6704-4dcc-92ad-c412d7fd832d",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tFZraVTGea7lP34f",
+          "name": "AK-Google Sheets"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        832,
+        0
+      ],
+      "id": "69b569e7-5c58-4ad0-a010-8d385625e4b6",
+      "name": "Aggregate",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the input data\nconst items = $input.all();\n\n// Extract the data array from the first item\nconst data = items[0].json.data;\n\n// Sort the data by Budget from highest to lowest\nconst sortedData = data.sort((a, b) => b.Budget - a.Budget);\n\n// Return the sorted data in the same structure\nreturn [\n  {\n    json: {\n      data: sortedData\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "872ca891-590d-41f7-a739-5141f615726c",
+      "name": "Code in JavaScript",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the input data\nconst items = $input.all();\n\n// Extract the data array from the first item\nconst data = items[0].json.data;\n\n// Convert each lead to formatted text\nlet textOutput = \"NEW LEADS:\\n\\n\";\n\ndata.forEach((lead, index) => {\n  textOutput += `Lead #${index + 1}\\n`;\n  textOutput += `Name: ${lead[\"Full Name\"]}\\n`;\n  textOutput += `Email: ${lead.Email}\\n`;\n  textOutput += `Service: ${lead.Service}\\n`;\n  textOutput += `Budget: $${lead.Budget}\\n`;\n  textOutput += `\\n---\\n\\n`;\n});\n\n// Return the text output\nreturn [\n  {\n    json: {\n      text: textOutput\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        0
+      ],
+      "id": "2a7fb7e2-1e12-47e4-bb44-3a8ff2eefd39",
+      "name": "Code in JavaScript1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "sendTo": "anishkorade@gmail.com",
+        "subject": "=New Lead",
+        "emailType": "text",
+        "message": "={{ $json.text }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1456,
+        0
+      ],
+      "id": "a1e499c2-bb35-4b3d-9210-26872c53c7c0",
+      "name": "Send a message",
+      "webhookId": "REPLACE_WEBHOOK_ID",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "Run actor and get dataset",
+        "actorId": {
+          "__rl": true,
+          "value": "nwua9Gu5YrADL7ZDj",
+          "mode": "list",
+          "cachedResultName": "Google Maps Scraper (compass/crawler-google-places)",
+          "cachedResultUrl": "https://console.apify.com/actors/nwua9Gu5YrADL7ZDj/input"
+        },
+        "customBody": "={\n    \"includeWebResults\": false,\n    \"language\": \"en\",\n    \"locationQuery\": \"Mumbai, Maharashtra, India\",\n    \"maxCrawledPlacesPerSearch\": 20,\n    \"scrapeContacts\": false,\n    \"scrapeDirectories\": false,\n    \"scrapeImageAuthors\": false,\n    \"scrapePlaceDetailPage\": false,\n    \"scrapeReviewsPersonalData\": true,\n    \"scrapeTableReservationProvider\": false,\n    \"searchStringsArray\": [\n        \"real estate agency\"\n    ],\n    \"skipClosedPlaces\": false\n}"
+      },
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        272
+      ],
+      "id": "0b09a2ea-09ca-45dc-b824-cc499670a813",
+      "name": "Run an Actor and get dataset"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "11Sq7g7k9X-V_CnG3qwDvQ-RvgH4VyjVAaNOFVTo-YPg",
+          "mode": "list",
+          "cachedResultName": "Dummy",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11Sq7g7k9X-V_CnG3qwDvQ-RvgH4VyjVAaNOFVTo-YPg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 598350424,
+          "mode": "list",
+          "cachedResultName": "Sheet3",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11Sq7g7k9X-V_CnG3qwDvQ-RvgH4VyjVAaNOFVTo-YPg/edit#gid=598350424"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "phoneNumber": "='{{ $json.phoneUnformatted }}",
+            "title": "={{ $json.title }}",
+            "categoryName": "={{ $json.categoryName }}",
+            "city": "={{ $json.city }}"
+          },
+          "matchingColumns": [
+            "phoneNumber"
+          ],
+          "schema": [
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "categoryName",
+              "displayName": "categoryName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "city",
+              "displayName": "city",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "phoneNumber",
+              "displayName": "phoneNumber",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        672,
+        272
+      ],
+      "id": "aed96d0b-35e0-4ef4-935b-4570b36b7e41",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tFZraVTGea7lP34f",
+          "name": "AK-Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a7fce738-d883-4ef3-b48c-b094afd1bbcf",
+              "leftValue": "={{ $json.phoneUnformatted }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        192,
+        272
+      ],
+      "id": "f02cac07-ddac-46d0-b33e-58ce77c6e3b2",
+      "name": "Filter1"
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        400,
+        272
+      ],
+      "id": "5e40cd9f-a5d1-4215-95bc-bd7fbe1c9d71",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        880,
+        272
+      ],
+      "id": "ed7672d9-ee7e-466c-bb13-9ce1db813449",
+      "name": "Wait",
+      "webhookId": "REPLACE_WEBHOOK_ID"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Run an Actor and get dataset",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run an Actor and get dataset": {
+      "main": [
+        [
+          {
+            "node": "Filter1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "3921903f-a1e3-4cd4-9843-4dbb1f181b9c",
+  "meta": {
+    "instanceId": "e3062000b9c19bf8a4e2c7741c0d61d36abd27f0e30312b580801e91dd6ae451"
+  },
+  "id": "l4rxBdoLdvkJf6KIg-_1G",
+  "tags": []
+}

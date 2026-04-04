@@ -1,0 +1,226 @@
+{
+  "name": "AI SaaS",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "REPLACE_WEBHOOK_PATH",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -384,
+        -80
+      ],
+      "id": "c68aaaf0-a819-4f83-9e52-23fa1825c6db",
+      "name": "Webhook",
+      "webhookId": "REPLACE_WEBHOOK_ID"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Company name: {{ $('Webhook').item.json.body.companyName }}\n\nIndustry: {{ $('Webhook').item.json.body.industry }}\n\nTitle: {{ $json.data.metadata.title }}\n\nDescription: {{ $json.data.metadata.description }}\n\nkeywords: {{ $json.data.metadata.keywords }}\n\nPost type: {{ $('Webhook').item.json.body.postType }}\n\nPlatform: {{ $('Webhook').item.json.body.platform }}"
+            },
+            {
+              "role": "system",
+              "content": "=###Role\nYou are a top 1% social media post creator. You create minimalist yet engaging posts for the platform {{ $('Webhook').item.json.body.platform }}.\n\n###Goal \nCreate minimalist and engaging posts.\n\n\n"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        128,
+        -80
+      ],
+      "id": "93e353e3-1d01-452f-b8d0-5b00922e53b6",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "tW5347fKpC9Ez5k2",
+          "name": "AK-openai"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Company name: {{ $('Webhook').item.json.body.companyName }}\n\nIndustry: {{ $('Webhook').item.json.body.industry }}\n\nTitle: {{ $('Scrape a URL and get content as markdown or other formats').item.json.data.metadata.title }}\n\nDescription: {{ $('Scrape a URL and get content as markdown or other formats').item.json.data.metadata.description }}\n\nkeywords: {{ $('Scrape a URL and get content as markdown or other formats').item.json.data.metadata.keywords }}\n\nPost type: {{ $('Webhook').item.json.body.postType }}\n\nPlatform: {{ $('Webhook').item.json.body.platform }}"
+            },
+            {
+              "role": "system",
+              "content": "=###Role\nYou are an expert social media creator who has high experience of generating prompts for minimalist AI images. Your prompts are known for minimalism yet engaging ai images.\n\n###Task\nYour job is to create a prompt for AI image for the social media platform {{ $('Webhook').item.json.body.platform }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        496,
+        -80
+      ],
+      "id": "4ecbd21b-d505-47b6-8cb8-1a437235d613",
+      "name": "Message a model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "tW5347fKpC9Ez5k2",
+          "name": "AK-openai"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "prompt": "={{ $json.output[0].content[0].text }}",
+        "options": {
+          "returnImageUrls": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        832,
+        -80
+      ],
+      "id": "94a6b247-6a89-4941-bc9c-b9a3f346849a",
+      "name": "Generate an image",
+      "credentials": {
+        "openAiApi": {
+          "id": "tW5347fKpC9Ez5k2",
+          "name": "AK-openai"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \n  \"image\" :\"{{ $json.url }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1024,
+        -80
+      ],
+      "id": "92b2b24c-dec9-4a3b-8a64-b7e1c11cc64e",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "resource": "Crawling",
+        "operation": "crawl",
+        "crawlOptions": {},
+        "requestOptions": {}
+      },
+      "type": "@mendable/n8n-nodes-firecrawl.firecrawl",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        -80
+      ],
+      "id": "1f27178c-1a55-4fe1-8dcc-ca4a0312a9f8",
+      "name": "Crawl a website and scrape all pages",
+      "credentials": {
+        "firecrawlApi": {
+          "id": "nvxkfNVF4JNHlEou",
+          "name": "AK-Firecrawl"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Crawl a website and scrape all pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Message a model1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model1": {
+      "main": [
+        [
+          {
+            "node": "Generate an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate an image": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crawl a website and scrape all pages": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "9bfafb14-0779-495b-a555-cf30d084c56f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e3062000b9c19bf8a4e2c7741c0d61d36abd27f0e30312b580801e91dd6ae451"
+  },
+  "id": "OWAlmgHIFXjWHAhEs0JYb",
+  "tags": []
+}
