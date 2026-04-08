@@ -1,0 +1,670 @@
+{
+  "name": "Invoice Generation",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      },
+      "id": "4c317cab-01f4-415b-b427-4aa22bc32cba",
+      "name": "Daily 9AM Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1808,
+        -112
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1b45MHY2MZLxskXqxHtPNVZ7ek2V5aVJaz9eXmrQ4rlQ",
+          "mode": "list",
+          "cachedResultName": "Invoice Generation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1b45MHY2MZLxskXqxHtPNVZ7ek2V5aVJaz9eXmrQ4rlQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1411586588,
+          "mode": "list",
+          "cachedResultName": "sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1b45MHY2MZLxskXqxHtPNVZ7ek2V5aVJaz9eXmrQ4rlQ/edit#gid=1411586588"
+        },
+        "options": {}
+      },
+      "id": "734e180b-9b60-4619-ab90-9553c0db6d29",
+      "name": "Read All Invoices",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1584,
+        -112
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tFZraVTGea7lP34f",
+          "name": "AK-Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const today = new Date();\ntoday.setHours(0, 0, 0, 0);\n\nconst overdue = [];\n\nfor (const item of $input.all()) {\n  const row = item.json;\n\n  // Normalize Payment Status safely\n  const status = String(row['Payment Status'] || '')\n    .trim()\n    .toLowerCase();\n\n  // Only process Pending invoices\n  if (status !== 'pending') continue;\n\n  // Handle Due Date (skip if not present or invalid)\n  let isOverdue = false;\n  let dueDateFormatted = '';\n  let daysOverdue = 0;\n\n  if (row['Due Date']) {\n    const due = new Date(row['Due Date']);\n\n    if (!isNaN(due)) {\n      due.setHours(0, 0, 0, 0);\n\n      if (due < today) {\n        isOverdue = true;\n        daysOverdue = Math.floor((today - due) / (1000 * 60 * 60 * 24));\n\n        dueDateFormatted = due.toLocaleDateString('en-IN', {\n          day: 'numeric',\n          month: 'short',\n          year: 'numeric'\n        });\n      }\n    }\n  }\n\n  // Only push if actually overdue\n  if (!isOverdue) continue;\n\n  overdue.push({\n    json: {\n      InvoiceNumber: row['Invoice Number'] || '',\n      CompanyName: row['Company Name'] || '',\n      ClientName: row['Contact Person'] || '',\n      ClientEmail: row['Client Email'] || '',\n      TotalAmount: row['Total Amount'] || '',\n      DueDate: dueDateFormatted,\n      DaysOverdue: daysOverdue\n    }\n  });\n}\n\n// ✅ Final Output (clean + usable downstream)\nreturn [{\n  json: {\n    hasOverdue: overdue.length > 0,\n    count: overdue.length,\n    invoices: overdue.map(item => item.json)\n  }\n}];"
+      },
+      "id": "3b9f57ec-44c9-49a1-a7a2-d55227c71810",
+      "name": "Filter Overdue Pending",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1360,
+        -112
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "condition1",
+              "leftValue": "={{ $json.hasOverdue }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "f01b54c7-2e72-47d1-a80e-9204d11155bb",
+      "name": "Has Overdue Invoices?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1136,
+        -112
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "=anishkorade@gmail.com",
+        "subject": "=Payment Reminder: Invoice #{{ $json.InvoiceNumber }} is Overdue",
+        "message": "=<p>Hi {{ $json.ClientName.split(' ')[0] || $json.ClientName }},</p><p>This is a friendly reminder that <b>Invoice #{{ $json.InvoiceNumber }}</b> for <b>{{ $json.TotalAmount }}</b> was due on <b>{{ $json.DueDate }}</b> and is now <b>{{ $json.DaysOverdue }} day(s) overdue</b>.</p><p>Kindly arrange the payment at the earliest to avoid any disruption to your services.</p><p>If you've already made the payment, please disregard this email.</p><p>Thank you,<br><b>Ivyside AI Private Limited</b><br>vaishnav@ivyside.in</p>",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Ivyside AI"
+        }
+      },
+      "id": "5b4dee10-8b66-401d-92a1-875c77a48cee",
+      "name": "Send Reminder Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -864,
+        32
+      ],
+      "webhookId": "reminder-webhook-0001",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "0OnXcLg8hCsAbOBH",
+          "name": "AK-Gmail"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "formTitle": "Generate Invoice",
+        "formDescription": "Fill out these details. The workflow will automatically inject them into the Ivyside HTML template and mail you the PDF.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Bill To : Company Name",
+              "fieldName": "companyName",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Bill To : Contact Person Name",
+              "fieldName": "clientName",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Bill To : Client Email",
+              "fieldType": "email",
+              "fieldName": "clientEmail"
+            },
+            {
+              "fieldLabel": "Bill To : Full Address",
+              "fieldType": "textarea",
+              "fieldName": "clientAddress"
+            },
+            {
+              "fieldLabel": "Bill To : GST Number",
+              "fieldName": "clientGST"
+            },
+            {
+              "fieldLabel": "Due Date",
+              "fieldType": "date",
+              "fieldName": "dueDate"
+            },
+            {
+              "fieldLabel": "Items (Strict Format: Product Name ; Quantity ; Price)\nExample:\nAI Automation ; 2 ; 30000\nWebsite Dev ; 1 ; 15000",
+              "fieldType": "textarea",
+              "fieldName": "itemsList",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Discount Value (₹ or $)",
+              "fieldType": "number",
+              "fieldName": "discount"
+            },
+            {
+              "fieldLabel": "SGST %",
+              "fieldType": "number",
+              "fieldName": "sgst"
+            },
+            {
+              "fieldLabel": "CGST %",
+              "fieldType": "number",
+              "fieldName": "cgst"
+            },
+            {
+              "fieldLabel": "Payment Method",
+              "fieldType": "dropdown",
+              "fieldName": "paymentMethod",
+              "defaultValue": "Razorpay",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Razorpay"
+                  },
+                  {
+                    "option": "UPI"
+                  },
+                  {
+                    "option": "Card"
+                  },
+                  {
+                    "option": "Bank Transfer"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "Currency",
+              "fieldType": "dropdown",
+              "fieldName": "currency",
+              "defaultValue": "INR",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "INR – Indian Rupee (₹)"
+                  },
+                  {
+                    "option": "USD – US Dollar ($)"
+                  },
+                  {
+                    "option": "EUR – Euro (€)"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "Payment Status",
+              "fieldType": "dropdown",
+              "fieldName": "paymentStatus",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Paid"
+                  },
+                  {
+                    "option": "Pending"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "buttonLabel": "Generate & Email PDF",
+          "respondWithOptions": {
+            "values": {
+              "formSubmittedText": "Your invoice is being generated and will be emailed to you shortly!"
+            }
+          }
+        }
+      },
+      "id": "0cbb0380-174b-47a8-9f08-ee427ffdabdf",
+      "name": "AI Invoice Form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -1824,
+        -416
+      ],
+      "webhookId": "f2005698-95ad-4ebb-aab2-013b3a5dab6a"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1b45MHY2MZLxskXqxHtPNVZ7ek2V5aVJaz9eXmrQ4rlQ",
+          "mode": "list",
+          "cachedResultName": "Invoice Generation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1b45MHY2MZLxskXqxHtPNVZ7ek2V5aVJaz9eXmrQ4rlQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1411586588,
+          "mode": "list",
+          "cachedResultName": "sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1b45MHY2MZLxskXqxHtPNVZ7ek2V5aVJaz9eXmrQ4rlQ/edit#gid=1411586588"
+        },
+        "options": {
+          "dataLocationOnSheet": {
+            "values": {
+              "rangeDefinition": "detectAutomatically"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1600,
+        -416
+      ],
+      "id": "89defcbe-cc93-4be8-bc7a-c331c5d0c450",
+      "name": "Get Data",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tFZraVTGea7lP34f",
+          "name": "AK-Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the form data\nconst formData = $('AI Invoice Form').first().json;\n\n// Get the last invoice number from Google Sheets\nconst sheetData = $('Get Data').all();\nlet lastInvoiceNo = 400;\nif (sheetData && sheetData.length > 0) {\n  const lastRow = sheetData[sheetData.length - 1].json;\n  if (lastRow['Invoice Number']) {\n    lastInvoiceNo = parseInt(lastRow['Invoice Number'], 10) || 400;\n  }\n}\n// Invoice + 1 logic\nconst nextId = lastInvoiceNo + 1;\n\nconst today = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });\n\n// ── Item Parser ──────────────────────────────────────────────────────────────\nfunction parseItems(rawText) {\n  const lines = rawText.split(/\\n/).map(l => l.trim()).filter(Boolean);\n  const items = [];\n\n  function parseSingleLine(line) {\n  if (!line) return null;\n\n  const parts = line.split(';').map(p => p.trim());\n\n  // New format: Product ; Quantity ; Price\n  if (parts.length === 3) {\n    return {\n      desc: parts[0],\n      qty: parseInt(parts[1]) || 1,\n      price: parseFloat(parts[2].replace(/[^\\d.]/g,'')) || 0\n    };\n  }\n\n  // Old format fallback: Product ; Price\n  if (parts.length === 2) {\n    return {\n      desc: parts[0],\n      qty: 1,\n      price: parseFloat(parts[1].replace(/[^\\d.]/g,'')) || 0\n    };\n  }\n\n  return { desc: line, qty: 1, price: 0 };\n}\n\n  for (const line of lines) {\n    const item = parseSingleLine(line);\n    if (item) items.push(item);\n  }\n  return items;\n}\n\n// ── Currency Formatter ───────────────────────────────────────────────────────\n// ── Currency Support ─────────────────────────────────────────────────────────\nconst currencyRaw = formData.currency || 'INR – Indian Rupee (₹)';\nlet currencySymbol = '₹';\nif (currencyRaw.startsWith('USD')) currencySymbol = '$';\nelse if (currencyRaw.startsWith('EUR')) currencySymbol = '€';\n\nfunction fmt(num) {\n  return currencySymbol + num.toFixed(2).replace(/\\B(?=(\\d{3})+(?!\\d))/g, ',');\n}\n\n// ── Parse Items & Calculate (GST Removed) ────────────────────────────────────\nconst items = parseItems(formData.itemsList || '');\nlet subtotal = 0;\nlet tableRowsHtml = '';\n\nfor (const item of items) {\n  const qty = Number(item.qty) || 0;\n  const price = Number(item.price) || 0;\n\n  const lineTotal = qty * price;\n  subtotal += lineTotal;\n\n  tableRowsHtml += `\n    <tr>\n      <td>${item.desc}</td>\n      <td>${fmt(price)}</td>\n      <td>${qty}</td>\n      <td style=\"text-align: right;\">${fmt(lineTotal)}</td>\n    </tr>`;\n}\n\nconst discount = parseFloat(formData.discount) || 0;\nconst grandTotal = subtotal - discount;\n\n// ── Format Due Date ───────────────────────────────────────────────────────────\nlet dueDate = formData.dueDate || '';\nif (dueDate) {\n  const d = new Date(dueDate);\n  if (!isNaN(d)) dueDate = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });\n}\n\n// ── Format Payment Details ───────────────────────────────────────────────────\nlet paymentDetailsHtml = '';\nconst pm = formData.paymentMethod || 'Razorpay';\n\nif (pm === 'Razorpay') {\n  paymentDetailsHtml = '<b>Payment Gateway: Razorpay</b><br>A secure payment link will be sent via email.';\n} else if (pm === 'UPI') {\n  paymentDetailsHtml = '<b>UPI Payment</b><br>UPI ID: vyapar.176885155532@hdfcbank<br>Name: IVYSIDE AI PRIVATE LIMITED';\n} else if (pm === 'Bank Transfer') {\n  paymentDetailsHtml = '<b>Bank Transfer</b><br>Bank Name: HDFC Bank<br>Account Name: Ivyside AI Private Limited<br>A/C No: 50200097686915<br>IFSC: HDFC0000829';\n} else {\n  paymentDetailsHtml = 'Card Payment Link will be provided securely.';\n}\n\n// ── Dynamic Footer Logic ──────────────────────────────────────────────────────\nconst status = formData.paymentStatus || 'Paid';\nlet footerMessage = '';\n\nif (status === 'Pending') {\n    footerMessage = '<b>Action Required:</b> Kindly complete the payment within 24 to 48 hours to initiate the services.';\n} else {\n    footerMessage = 'We have received your payment. We are excited to help your business scale!';\n}\n\n// ── HTML Template with New Top-Right Formatting and Removed Line ─────────────\nconst html = `<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Invoice #${nextId} - Ivyside Ai</title>\n    <style>\n        :root { --text-main: #1a1a1a; --text-muted: #555555; --border-color: #e0e0e0; }\n        * { box-sizing: border-box; }\n        \n        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 0; background-color: #fff; color: var(--text-main); line-height: 1.4; }\n        .invoice-container { max-width: 850px; margin: 0 auto; padding: 30px 50px; position: relative; }\n        \n        /* Flex header remains the same */\n        .header-section { display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px; } /* more margin */\n        .logo-group { flex: 1; }\n        .logo-header { margin-bottom: 10px; }\n        .logo-img { height: 65px; width: auto; }\n        \n        .company-details { font-size: 13px; color: var(--text-muted); line-height: 1.5; }\n        \n        /* NEW LEFT-ALIGNED META BLOCK IN TOP RIGHT */\n        .meta-container-top { text-align: left; width: 195px; padding-top: 10px; display: block; }\n        .meta-title { font-weight: bold; margin-bottom: 10px; display: block; }\n        .meta-row { display: flex; margin-bottom: 5px; }\n        .meta-label { font-weight: bold; width: 95px; }\n        .meta-value { font-weight: normal; }\n        \n        /* HUGE INVOICE TITLE RISES UP (BUT NO LINE ABOVE) */\n        /* Removed border-top on invoice title as requested */\n        .invoice-title { font-size: 100px; font-weight: 900; margin: 20px 0 30px -5px; letter-spacing: -2px; color: #000; line-height: 1; } /* more space on top */\n        \n        .address-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 30px; margin-bottom: 40px; }\n        .section-label { font-weight: 700; font-size: 16px; margin-bottom: 10px; display: block; }\n        .address-content { color: var(--text-muted); font-size: 14px; line-height: 1.5; }\n        \n        table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }\n        th { text-align: left; padding: 10px 0; border-bottom: 1.5px solid #000; font-size: 16px; font-weight: 700; }\n        td { padding: 15px 0; border-bottom: 1px solid var(--border-color); font-size: 15px; }\n        \n        .totals-area { display: flex; flex-direction: column; align-items: flex-end; margin-top: 15px; }\n        .total-row { display: grid; grid-template-columns: 160px 120px; padding: 6px 0; font-size: 15px; }\n        .grand-total { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-color); font-weight: 800; font-size: 17px; }\n        \n        .signature-block { margin-top: 40px; text-align: right; font-size: 14px; font-weight: bold; color: var(--text-main); }\n        .auto-generated-text { font-size: 11px; font-weight: normal; color: var(--text-muted); display: block; margin-top: 5px; }\n        .footer-text { margin-top: 40px; padding-top: 15px; border-top: 1px solid var(--border-color); font-size: 13px; color: var(--text-muted); }\n        \n        @media print { \n            @page { margin: 0; }\n            body { -webkit-print-color-adjust: exact; } \n        }\n    </style>\n</head>\n<body>\n<div class=\"invoice-container\">\n    <div class=\"header-section\">\n        <div class=\"logo-group\">\n            <header class=\"logo-header\">\n                <img src=\"https://res.cloudinary.com/djsei2fln/image/upload/v1768991617/Ivyside-logo-full_vptrbe.svg\" alt=\"Ivyside Ai Logo\" class=\"logo-img\">\n            </header>\n            \n            <div class=\"company-details\">\n                <b>Ivyside AI Private Limited</b><br>\n                Shop No 3, Plot No C-30, Sector-20, Airoli, Thane-400708, Maharashtra<br>\n                CIN: U62020MH2026PTC465304<br>\n                Email: vaishnav@ivyside.in\n            </div>\n        </div>\n\n        <div class=\"meta-container-top\">\n            <span class=\"meta-title\">Invoice</span>\n            <div class=\"meta-row\"><span class=\"meta-label\">No.:</span><span class=\"meta-value\">${nextId}</span></div>\n            <div class=\"meta-row\"><span class=\"meta-label\">Date :</span><span class=\"meta-value\">${today}</span></div>\n            <div class=\"meta-row\"><span class=\"meta-label\">Due :</span><span class=\"meta-value\">${dueDate || '—'}</span></div>\n        </div>\n    </div>\n\n    <h1 class=\"invoice-title\">INVOICE</h1>\n    \n    <div class=\"address-grid\">\n        <div>\n            <span class=\"section-label\">Bill to :</span>\n            <div class=\"address-content\">\n                ${formData.companyName ? '<b>' + formData.companyName + '</b><br>' : ''}\n                ${formData.clientName || ''}<br>\n                ${formData.clientEmail || ''}<br>\n                ${(formData.clientAddress || '').replace(/\\n/g, '<br>')}<br>\n            </div>\n        </div>\n        <div>\n            <span class=\"section-label\">Payment Method :</span>\n            <div class=\"address-content\">\n                ${paymentDetailsHtml}\n            </div>\n        </div>\n    </div>\n    \n    <table>\n        <thead>\n            <tr>\n                <th style=\"width: 50%;\">Description</th>\n                <th>Price</th>\n                <th>Quantity</th>\n                <th style=\"text-align: right;\">SubTotal</th>\n            </tr>\n        </thead>\n        <tbody>${tableRowsHtml}</tbody>\n    </table>\n    \n    <div class=\"totals-area\">\n        <div class=\"total-row\"><b>Subtotal</b><span style=\"text-align: right;\">${fmt(subtotal)}</span></div>\n        <div class=\"total-row\"><b>Discount</b><span style=\"text-align: right;\">-${fmt(discount)}</span></div>\n        <div class=\"total-row grand-total\"><b>Total</b><span style=\"text-align: right;\">${fmt(grandTotal)}</span></div>\n    </div>\n\n    <div class=\"signature-block\">\n        For Ivyside AI Private Limited<br>\n        <span class=\"auto-generated-text\">This is a computer-generated document and does not require a physical signature.</span>\n    </div>\n\n    <footer class=\"footer-text\">${footerMessage}</footer>\n</div>\n</body>\n</html>`;\n\n// ── Pack output ───────────────────────────────────────────────────────────────\nconst company = formData.companyName || formData.clientName || 'Client';\nconst contact = formData.clientName || '';\nconst fileName = 'Invoice_' + nextId + '_' + company.replace(/\\s+/g, '_') + '.pdf';\nconst htmlBase64 = Buffer.from(html).toString('base64');\n\nreturn [{\n  json: {\n    Date: today,\n    InvoiceNumber: nextId,\n    ClientName: contact,\n    CompanyName: company,\n    TotalAmount: fmt(grandTotal),\n    clientEmail: formData.clientEmail || 'vaishnavj2124.work@gmail.com',\n    PaymentStatus: formData.paymentStatus || 'Paid',\n    DueDate: dueDate || '',\n    fileName\n  },\n  binary: {\n    htmlFileSimple: {\n      data: htmlBase64,\n      mimeType: 'text/html',\n      fileName: 'index.html'\n    }\n  }\n}];"
+      },
+      "id": "a3a9b5dc-cd72-4133-933c-ddf20cd4ed2d",
+      "name": "Build Invoice HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1376,
+        -416
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://gotenberg:3000/forms/chromium/convert/html",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Gotenberg-Output-Filename",
+              "value": "Invoice"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "paperWidth",
+              "value": "8.27"
+            },
+            {
+              "name": "paperHeight",
+              "value": "11.7"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "files",
+              "inputDataFieldName": "htmlFileSimple"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "Invoice.pdf"
+            }
+          }
+        }
+      },
+      "id": "251281ea-f460-4825-a7b0-c17e28add019",
+      "name": "HTML -> PDF",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1152,
+        -416
+      ]
+    },
+    {
+      "parameters": {
+        "inputDataFieldName": "=Invoice.pdf",
+        "name": "={{ $('Build Invoice HTML').item.json.CompanyName }}'s Invoice",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1rkA_0G8AZajJey_-kpydWJUWxoHcMRHS",
+          "mode": "list",
+          "cachedResultName": "Generated Invoice ",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1rkA_0G8AZajJey_-kpydWJUWxoHcMRHS"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -864,
+        -608
+      ],
+      "id": "faaee48d-7445-4e67-8c86-e0b57bdb1035",
+      "name": "Upload file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "SX4mYn2wfx5iWYvU",
+          "name": "AK-Drive Work"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1b45MHY2MZLxskXqxHtPNVZ7ek2V5aVJaz9eXmrQ4rlQ",
+          "cachedResultName": "Invoice Generation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1b45MHY2MZLxskXqxHtPNVZ7ek2V5aVJaz9eXmrQ4rlQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1411586588",
+          "cachedResultName": "sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1b45MHY2MZLxskXqxHtPNVZ7ek2V5aVJaz9eXmrQ4rlQ/edit?usp=drivesdk#gid=1411586588"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $('Build Invoice HTML').item.json.Date }}",
+            "Invoice Number": "={{ $('Build Invoice HTML').item.json.InvoiceNumber }}",
+            "Total Amount": "={{ $('Build Invoice HTML').item.json.TotalAmount }}",
+            "View Invoice": "==HYPERLINK(\"{{ $json.webViewLink }}\", \"Invoice PDF\")",
+            "Company Name": "={{ $('Build Invoice HTML').item.json.CompanyName }}",
+            "Contact Person": "={{ $('Build Invoice HTML').item.json.ClientName }}",
+            "Payment Status": "={{ $('AI Invoice Form').item.json.paymentStatus }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Invoice Number",
+              "displayName": "Invoice Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company Name",
+              "displayName": "Company Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Contact Person",
+              "displayName": "Contact Person",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Total Amount",
+              "displayName": "Total Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "View Invoice",
+              "displayName": "View Invoice",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Payment Status",
+              "displayName": "Payment Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "31abbb24-50e5-4940-8937-18d303e48496",
+      "name": "Log Invoice",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -656,
+        -608
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tFZraVTGea7lP34f",
+          "name": "AK-Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "=anish@ivyside.in, vaishnav@ivyside.in, {{$json.clientEmail}}",
+        "subject": "=Your Invoice #{{ $json.InvoiceNumber }} from Ivyside AI",
+        "message": "=<p>Hi {{ $json.ClientName.split(' ')[0] }},</p><p>Please find your invoice attached.</p><p>Thank you for choosing Ivyside AI!</p>",
+        "options": {
+          "appendAttribution": false,
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "=Invoice.pdf"
+              }
+            ]
+          },
+          "senderName": "Ivyside AI"
+        }
+      },
+      "id": "a0b153ab-1fa2-4dfb-a04e-fd9b6302c9c4",
+      "name": "Mail PDF to User",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -880,
+        -288
+      ],
+      "webhookId": "42ea31b3-bbaf-4dc9-8774-18227d872387",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "0OnXcLg8hCsAbOBH",
+          "name": "AK-Gmail"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Daily 9AM Trigger": {
+      "main": [
+        [
+          {
+            "node": "Read All Invoices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read All Invoices": {
+      "main": [
+        [
+          {
+            "node": "Filter Overdue Pending",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Overdue Pending": {
+      "main": [
+        [
+          {
+            "node": "Has Overdue Invoices?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Overdue Invoices?": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Send Reminder Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Invoice Form": {
+      "main": [
+        [
+          {
+            "node": "Get Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Data": {
+      "main": [
+        [
+          {
+            "node": "Build Invoice HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Invoice HTML": {
+      "main": [
+        [
+          {
+            "node": "HTML -> PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML -> PDF": {
+      "main": [
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Mail PDF to User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        [
+          {
+            "node": "Log Invoice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "8a144422-f572-4d9a-be7d-b75f0d225841",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e3062000b9c19bf8a4e2c7741c0d61d36abd27f0e30312b580801e91dd6ae451"
+  },
+  "id": "wOoF4OUaaxSzw8Pv",
+  "tags": []
+}
