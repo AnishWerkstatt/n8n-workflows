@@ -1,0 +1,410 @@
+{
+  "name": "Contract Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "AI Contract Generator",
+        "formDescription": "Provide contract details. AI will map your responses to agreement fields.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Client full legal name",
+              "placeholder": "Example: Acme Innovations Pvt Ltd",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Client full address",
+              "fieldType": "textarea",
+              "placeholder": "Street, City, State, Postal Code, Country",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Contract effective date",
+              "fieldType": "date",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Project scope summary",
+              "fieldType": "textarea",
+              "placeholder": "Describe project goals, deliverables, and expected outcomes",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Tech stack and tools",
+              "fieldType": "textarea",
+              "placeholder": "n8n, OpenAI, CRM, database, APIs, etc.",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Milestones",
+              "fieldType": "textarea",
+              "placeholder": "List milestone names and expected completion points",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Project start date",
+              "fieldType": "date",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Project end date",
+              "fieldType": "date",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Total project fee (INR)",
+              "fieldType": "number",
+              "placeholder": "Example: 250000",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Payment split in percent",
+              "placeholder": "Example: 40% upfront, 30% milestone-based, 30% on completion",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Included revisions count",
+              "fieldType": "number",
+              "placeholder": "Example: 2",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Additional work hourly rate (INR)",
+              "fieldType": "number",
+              "placeholder": "Example: 3000",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Termination notice period (days)",
+              "fieldType": "number",
+              "placeholder": "Example: 15",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Support terms",
+              "fieldType": "textarea",
+              "placeholder": "Example: 30 days support included. Extended support at INR 15000/month"
+            },
+            {
+              "fieldLabel": "Governing law jurisdiction",
+              "placeholder": "Example: Laws of Maharashtra, India",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Any other important contract notes",
+              "fieldType": "textarea",
+              "placeholder": "Optional clarifications"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -400,
+        -864
+      ],
+      "id": "d31c7fa9-52cb-427c-a579-be54b35c8fb7",
+      "name": "Contract Form Trigger",
+      "webhookId": "740fa95f-ee3d-4e16-a128-0b118d8fb5bd"
+    },
+    {
+      "parameters": {
+        "sendTo": "anishkorade@gmail.com",
+        "subject": "=Generated Contract PDF for {{ $('Agreement Agent1').item.json.output.agreement_fields.client_name }}",
+        "message": "=Find below the cotract pdf\n",
+        "options": {
+          "appendAttribution": false,
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "={{ $('Agreement Agent1').item.json.output.agreement_fields.client_name }}'s Contract"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        832,
+        -640
+      ],
+      "id": "2a05e961-b7a3-421b-afa7-39448b8faeb3",
+      "name": "Send via Gmail",
+      "webhookId": "5a4667e3-ae97-4004-aa21-7b45138d2907",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "5Q9P7z6vxruQ5K8J",
+          "name": "AK-Gmail Work"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-4o-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -176,
+        -592
+      ],
+      "id": "34d1aa20-db22-4b72-b843-5ba41e78285a",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "H7Wdx6wCpCltG4OS",
+          "name": "AK-OpenRouter"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"agreement_fields\": {\n    \"date\": \"string\",\n    \"client_name\": \"string\",\n    \"client_address\": \"string\",\n    \"project_description\": \"string\",\n    \"tech_stack\": \"string\",\n    \"milestones\": \"string\",\n    \"start_date\": \"string\",\n    \"end_date\": \"string\",\n    \"amount_inr\": \"string\",\n    \"upfront_percent\": \"string\",\n    \"milestone_percent\": \"string\",\n    \"completion_percent\": \"string\",\n    \"revisions_count\": \"string\",\n    \"hourly_rate_inr\": \"string\",\n    \"termination_notice_days\": \"string\",\n    \"support_terms\": \"string\",\n    \"governing_law\": \"string\"\n  }\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        -704
+      ],
+      "id": "e25ab5b4-476a-4ad8-afb3-bdf1f8896ecd",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.toJsonString() }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=# Role\\nYou read n8n form submissions and normalize them into structured agreement fields for contract generation.\\n\\n# Instructions\\n- Extract and clean values from form input.\\n- Correct spelling and basic grammar mistakes across all user-provided text fields.\\n- Keep the original factual meaning unchanged; do not invent new facts.\\n- Rewrite project_description into a concise, professional, contract-ready summary.\\n- Improve wording for clarity and professionalism in tech_stack and milestones as needed, without changing intent.\\n- Convert numeric values to strings.\\n- Parse payment split into upfront_percent, milestone_percent, completion_percent.\\n- Keep support_terms as provided; if empty, return 'Not included'.\\n- Return JSON only matching the structured output schema."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -144,
+        -864
+      ],
+      "id": "521e7677-e1bf-44ee-9ea9-541579203a4e",
+      "name": "Agreement Agent1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const fields = $input.item.json.output.agreement_fields || {};\n\nconst serviceProviderName = 'Ivyside AI';\nconst serviceProviderAddress = 'Airoli, Navi Mumbai';\n\nconst esc = (v) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n\n// Date formatting function: converts date to \"9th May, 2020\" format\nconst formatDate = (dateString) => {\n  if (!dateString) return '';\n  \n  // Parse the date - supports formats like: 9/05/2020, 09/05/2020, 9-05-2020, 2020-05-09\n  let day, month, year;\n  \n  // Try to parse common formats\n  if (dateString.includes('/')) {\n    const parts = dateString.split('/');\n    // Assume DD/MM/YYYY (most common)\n    day = parseInt(parts[0], 10);\n    month = parseInt(parts[1], 10);\n    year = parseInt(parts[2], 10);\n  } else if (dateString.includes('-')) {\n    const parts = dateString.split('-');\n    // Check if it's YYYY-MM-DD format\n    if (parts[0].length === 4) {\n      year = parseInt(parts[0], 10);\n      month = parseInt(parts[1], 10);\n      day = parseInt(parts[2], 10);\n    } else {\n      // Assume DD-MM-YYYY\n      day = parseInt(parts[0], 10);\n      month = parseInt(parts[1], 10);\n      year = parseInt(parts[2], 10);\n    }\n  } else {\n    return dateString; // Return as-is if format not recognized\n  }\n  \n  // Validate parsed values\n  if (isNaN(day) || isNaN(month) || isNaN(year)) {\n    return dateString;\n  }\n  \n  // Month names\n  const monthNames = [\n    'January', 'February', 'March', 'April', 'May', 'June',\n    'July', 'August', 'September', 'October', 'November', 'December'\n  ];\n  \n  // Add ordinal suffix to day\n  const getOrdinalSuffix = (d) => {\n    if (d > 3 && d < 21) return 'th'; // 4th-20th\n    switch (d % 10) {\n      case 1: return 'st';\n      case 2: return 'nd';\n      case 3: return 'rd';\n      default: return 'th';\n    }\n  };\n  \n  const monthName = monthNames[month - 1];\n  const ordinalDay = day + getOrdinalSuffix(day);\n  \n  return `${ordinalDay} ${monthName}, ${year}`;\n};\n\nconst html = `<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\" />\n  <title>AI Automation Services Agreement</title>\n  <style>\n    * {\n      margin: 0;\n      padding: 0;\n      box-sizing: border-box;\n    }\n\n    body {\n      font-family: \"Segoe UI\", Arial, sans-serif;\n      line-height: 1.5;\n      background: #eef2f5;\n      padding: 30px 20px;\n      color: #1a2a3a;\n    }\n\n    .container {\n      max-width: 900px;\n      margin: 0 auto;\n      background: white;\n      border-radius: 12px;\n      box-shadow: 0 8px 20px rgba(0,0,0,0.08);\n      overflow: hidden;\n      padding: 32px 40px;\n    }\n\n    .header {\n      display: flex;\n      justify-content: space-between;\n      align-items: center;\n      margin-bottom: 24px;\n      padding-bottom: 16px;\n      border-bottom: 2px solid #e6edf2;\n    }\n\n    .logo {\n      height: 48px;\n      width: auto;\n    }\n\n    .title-section {\n      text-align: right;\n    }\n\n    h1 {\n      font-size: 20px;\n      letter-spacing: 0.5px;\n      color: #0b2b3b;\n      margin-bottom: 4px;\n    }\n\n    .date {\n      font-size: 13px;\n      color: #5e7a8c;\n    }\n\n    .info-box {\n      display: flex;\n      gap: 32px;\n      background: #f8fafc;\n      padding: 16px 20px;\n      border-radius: 10px;\n      margin-bottom: 28px;\n      font-size: 13px;\n    }\n\n    .info-box div {\n      flex: 1;\n    }\n\n    .info-box strong {\n      display: block;\n      font-size: 13px;\n      margin-bottom: 6px;\n      color: #0f3b4f;\n    }\n\n    .section {\n      margin-bottom: 18px;\n    }\n\n    h2 {\n      font-size: 15px;\n      font-weight: 600;\n      color: #1e4a6b;\n      margin: 16px 0 8px 0;\n      padding-bottom: 3px;\n      border-bottom: 1px solid #e2e8f0;\n    }\n\n    p, li {\n      font-size: 13px;\n      color: #2c3e44;\n    }\n\n    ul {\n      margin: 4px 0 0 22px;\n    }\n\n    li {\n      margin: 3px 0;\n    }\n\n    .compact-list {\n      margin-top: 2px;\n    }\n\n    .signature {\n      margin-top: 32px;\n      display: flex;\n      gap: 40px;\n      border-top: 1px solid #e2edf2;\n      padding-top: 28px;\n    }\n\n    .signature div {\n      flex: 1;\n    }\n\n    .signature strong {\n      font-size: 13px;\n      display: block;\n      margin-bottom: 12px;\n    }\n\n    .line {\n      border-top: 1px solid #9aaeb9;\n      margin: 20px 0 12px 0;\n    }\n\n    .signature p {\n      margin: 12px 0 4px;\n      font-size: 12px;\n    }\n\n    .footer {\n      text-align: center;\n      font-size: 11px;\n      color: #7f8e99;\n      margin-top: 32px;\n      padding-top: 12px;\n      border-top: 1px solid #ecf3f8;\n    }\n\n    .project-details {\n      background: #fefdf7;\n      padding: 6px 0 2px;\n    }\n\n    .inline-badge {\n      font-weight: 600;\n      color: #1e4a6b;\n    }\n\n    @media (max-width: 600px) {\n      .container {\n        padding: 20px;\n      }\n      .info-box {\n        flex-direction: column;\n        gap: 12px;\n      }\n      .signature {\n        flex-direction: column;\n        gap: 28px;\n      }\n    }\n  </style>\n</head>\n<body>\n<div class=\"container\">\n\n  <div class=\"header\">\n    <img src=\"https://res.cloudinary.com/djsei2fln/image/upload/v1768996077/Group_88_joitde.png\" class=\"logo\" alt=\"Ivyside AI Logo\" />\n    <div class=\"title-section\">\n      <h1>AI AUTOMATION SERVICES AGREEMENT</h1>\n      <div class=\"date\"><strong>Date:</strong> ${esc(formatDate(fields.date))}</div>\n    </div>\n  </div>\n\n  <div class=\"info-box\">\n    <div>\n      <strong>Client</strong>\n      ${esc(fields.client_name)}<br />\n      ${esc(fields.client_address)}\n    </div>\n    <div>\n      <strong>Service Provider</strong>\n      ${esc(serviceProviderName)}<br />\n      ${esc(serviceProviderAddress)}\n    </div>\n  </div>\n\n  <div class=\"section\">\n    <h2>1. Scope of Services</h2>\n   \n    <p style=\"margin-top: 10px;\"><strong class=\"inline-badge\">Project Details</strong></p>\n    <ul class=\"project-details\">\n      <li>${esc(fields.project_description)}</li>\n      <li>${esc(fields.tech_stack)}</li>\n      <li>${esc(fields.milestones)}</li>\n    </ul>\n  </div>\n\n  <div class=\"section\">\n    <h2>2. Project Timeline</h2>\n    <p>Start Date: ${esc(formatDate(fields.start_date))} &nbsp;|&nbsp; End Date: ${esc(formatDate(fields.end_date))}</p>\n  </div>\n\n  <div class=\"section\">\n    <h2>3. Payment Terms</h2>\n    <p><strong>Total Fee:</strong> INR ${esc(fields.amount_inr)}</p>\n    <ul>\n      <li>${esc(fields.upfront_percent)}% upfront</li>\n      <li>${esc(fields.milestone_percent)}% milestone-based</li>\n      <li>${esc(fields.completion_percent)}% upon completion</li>\n    </ul>\n    <p style=\"font-size: 12px; margin-top: 4px;\">Late payments may delay project delivery.</p>\n  </div>\n\n  <div class=\"section\">\n    <h2>4. Revision Policy</h2>\n    <p>${esc(fields.revisions_count)} revisions included. Additional work billed at INR ${esc(fields.hourly_rate_inr)}/hour.</p>\n  </div>\n\n  <div class=\"section\">\n    <h2>5. Client Responsibilities</h2>\n    <ul>\n      <li>Provide required data and access</li>\n      <li>Give timely feedback</li>\n      <li>Ensure legal data usage</li>\n    </ul>\n  </div>\n\n  <div class=\"section\">\n    <h2>6. Confidentiality</h2>\n    <p>All shared information will remain confidential and not disclosed.</p>\n  </div>\n\n  <div class=\"section\">\n    <h2>7. Intellectual Property</h2>\n    <p>Ownership transfers upon full payment. General frameworks remain reusable by provider.</p>\n  </div>\n\n  <div class=\"section\">\n    <h2>8. Limitation of Liability</h2>\n    <p>Provider is not liable for indirect damages or third-party API failures.</p>\n  </div>\n\n  <div class=\"section\">\n    <h2>9. Termination</h2>\n    <p>Either party may terminate with ${esc(fields.termination_notice_days)} days notice. Payment required for completed work.</p>\n  </div>\n\n  <div class=\"section\">\n    <h2>10. Maintenance & Support</h2>\n    <p>${esc(fields.support_terms || 'Not included')}</p>\n  </div>\n\n  <div class=\"section\">\n    <h2>11. Force Majeure</h2>\n    <p>No liability for delays due to uncontrollable events.</p>\n  </div>\n\n  <div class=\"section\">\n    <h2>12. Governing Law</h2>\n    <p>Governed by laws of ${esc(fields.governing_law)}.</p>\n  </div>\n\n  <div class=\"signature\">\n    <div>\n      <strong>Client</strong>\n      <div class=\"line\"></div>\n      <p>Name:</p>\n      <p>Signature:</p>\n      <p>Date:</p>\n    </div>\n    <div>\n      <strong>Service Provider</strong>\n      <div class=\"line\"></div>\n      <p>Name:</p>\n      <p>Signature:</p>\n      <p>Date:</p>\n    </div>\n  </div>\n\n  <div class=\"footer\">\n    Ivyside AI - AI Solutions\n  </div>\n\n</div>\n</body>\n</html>`;\n\nreturn [{ json: { html } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        -864
+      ],
+      "id": "8bf049fa-019c-49a7-a35b-6b4fcef43bbe",
+      "name": "Render Contract HTML1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const html = $input.item.json.html;\nconst buffer = Buffer.from(html, 'utf8');\n\nreturn [{\n  json: {},\n  binary: {\n    data: await this.helpers.prepareBinaryData(buffer, 'index.html', 'text/html')\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        -864
+      ],
+      "id": "40677eed-d394-46ee-af4d-60ce49402334",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://gotenberg:3000/forms/chromium/convert/html",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Gotenberg-Output-Filename",
+              "value": "=Contract"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "files",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "={{ $('Agreement Agent1').item.json.output.agreement_fields.client_name }}'s Contract"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        624,
+        -864
+      ],
+      "id": "96b2d836-4e2a-49e4-a5cf-b1581990c276",
+      "name": "File -> Pdf using Gotenberg1"
+    },
+    {
+      "parameters": {
+        "inputDataFieldName": "={{ $('Agreement Agent1').item.json.output.agreement_fields.client_name }}'s Contract",
+        "name": "={{ $('Agreement Agent1').item.json.output.agreement_fields.client_name }}'s Contract",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1EUuC3Fs05zJ5ChJn5fYcaKilc1TTXi-r",
+          "mode": "list",
+          "cachedResultName": "Generated Contract",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1EUuC3Fs05zJ5ChJn5fYcaKilc1TTXi-r"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        832,
+        -864
+      ],
+      "id": "0f5832c9-9a17-4824-900b-bde09b592799",
+      "name": "Upload file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "SX4mYn2wfx5iWYvU",
+          "name": "AK-Drive Work"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Contract Form Trigger": {
+      "main": [
+        [
+          {
+            "node": "Agreement Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agreement Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Structured Output Parser1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agreement Agent1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agreement Agent1": {
+      "main": [
+        [
+          {
+            "node": "Render Contract HTML1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render Contract HTML1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "File -> Pdf using Gotenberg1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "File -> Pdf using Gotenberg1": {
+      "main": [
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send via Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "b25741af-b551-4246-84c2-fbb89b6c0d2e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e3062000b9c19bf8a4e2c7741c0d61d36abd27f0e30312b580801e91dd6ae451"
+  },
+  "id": "55kD2gmf3rYgJeG1",
+  "tags": []
+}
